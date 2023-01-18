@@ -1,7 +1,14 @@
 package com.banking.controller;
 
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
 public class BankingController {
 	
-	hello
+	@GetMapping("/getStudent")
+	public String getStudent() {
+		return "Siuuuuuu";
+	}
 
 }
