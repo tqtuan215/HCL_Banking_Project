@@ -13,8 +13,9 @@ public class Account {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
-	private String username;
+	private String accountNumber;
 	private String password;
+	private String transactionPassword;
 
 	public Integer getId() {
 		return id;
@@ -24,12 +25,12 @@ public class Account {
 		this.id = id;
 	}
 
-	public String getUsername() {
-		return username;
+	public String getAccountNumber() {
+		return accountNumber;
 	}
 
-	public void setUsername(String username) {
-		this.username = username;
+	public void setAccountNumber(String accountNumber) {
+		this.accountNumber = accountNumber;
 	}
 
 	public String getPassword() {
@@ -38,6 +39,14 @@ public class Account {
 
 	public void setPassword(String password) {
 		this.password = password;
+	}
+
+	public String getTransactionPassword() {
+		return transactionPassword;
+	}
+
+	public void setTransactionPassword(String transactionPassword) {
+		this.transactionPassword = transactionPassword;
 	}
 
 }

@@ -18,6 +18,9 @@ public class AccountService {
 
 	public Account saveAccount(Account account) {
 		return accountRepository.save(account);
-
+	}
+	
+	public Account findAccountByAccountNumber(String accountNumber) {
+		return accountRepository.findByAccountNumber(accountNumber);
 	}
 }
