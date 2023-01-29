@@ -11,11 +11,6 @@ public class AccountService {
 	@Autowired
 	private AccountRepository accountRepository;
 
-//	Account checkLogin(String username, String password) {
-//		Account account = accountRepository.checkLogin(username, password);
-//		return account;
-//	}
-
 	public Account saveAccount(Account account) {
 		return accountRepository.save(account);
 	}
@@ -23,4 +18,6 @@ public class AccountService {
 	public Account findAccountByAccountNumber(String accountNumber) {
 		return accountRepository.findByAccountNumber(accountNumber);
 	}
+	
+	
 }

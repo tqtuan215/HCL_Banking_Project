@@ -16,6 +16,7 @@ public class Account {
 	private String accountNumber;
 	private String password;
 	private String transactionPassword;
+	private String email;
 
 	public Integer getId() {
 		return id;
@@ -47,6 +48,14 @@ public class Account {
 
 	public void setTransactionPassword(String transactionPassword) {
 		this.transactionPassword = transactionPassword;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
 	}
 
 }
