@@ -18,6 +18,4 @@ public class AccountService {
 	public Account findAccountByAccountNumber(String accountNumber) {
 		return accountRepository.findByAccountNumber(accountNumber);
 	}
-	
-	
 }

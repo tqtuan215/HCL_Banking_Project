@@ -17,6 +17,7 @@ public class Account {
 	private String password;
 	private String transactionPassword;
 	private String email;
+	private Integer attemp = 0;
 
 	public Integer getId() {
 		return id;
@@ -56,6 +57,14 @@ public class Account {
 
 	public void setEmail(String email) {
 		this.email = email;
+	}
+
+	public Integer getAttemp() {
+		return attemp;
+	}
+
+	public void setAttemp(Integer attemp) {
+		this.attemp = attemp;
 	}
 
 }
