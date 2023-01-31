@@ -17,7 +17,9 @@ public class Account {
 	private String password;
 	private String transactionPassword;
 	private String email;
+	private boolean internetBanking;
 	private Integer attemp = 0;
+	private String otp;
 
 	public Integer getId() {
 		return id;
@@ -65,6 +67,22 @@ public class Account {
 
 	public void setAttemp(Integer attemp) {
 		this.attemp = attemp;
+	}
+
+	public boolean isInternetBanking() {
+		return internetBanking;
+	}
+
+	public void setInternetBanking(boolean internetBanking) {
+		this.internetBanking = internetBanking;
+	}
+
+	public String getOtp() {
+		return otp;
+	}
+
+	public void setOtp(String otp) {
+		this.otp = otp;
 	}
 
 }

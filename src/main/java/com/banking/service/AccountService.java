@@ -18,4 +18,8 @@ public class AccountService {
 	public Account findAccountByAccountNumber(String accountNumber) {
 		return accountRepository.findByAccountNumber(accountNumber);
 	}
+	
+	public Account findAccountByEmail(String email) {
+		return accountRepository.findByEmail(email);
+	}
 }
