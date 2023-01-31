@@ -17,6 +17,8 @@ import com.banking.service.AccountService;
 import com.banking.service.EmailOTPService;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 @RestController
 public class AccountController {
 
@@ -26,11 +28,11 @@ public class AccountController {
 	private EmailOTPService emailService;
 
 	@PostMapping("/addAccount")
-	public ResponseEntity<Account> addAccount(@RequestBody Account account) {
+	public ResponseEntity<?> addAccount(@RequestBody Account account) {
 		Account accountNumber = accountService.findAccountByAccountNumber(account.getAccountNumber());
 		Account accountEmail = accountService.findAccountByAccountNumber(account.getEmail());
 		if (accountNumber != null || accountEmail != null)
-			return ResponseEntity.badRequest().build();
+			return new ResponseEntity<String>("Account exists", HttpStatus.BAD_REQUEST);
 		return new ResponseEntity<Account>(accountService.saveAccount(account), HttpStatus.OK);
 	}
 
@@ -40,7 +42,7 @@ public class AccountController {
 	}
 
 	@PostMapping("/login")
-	public ResponseEntity<?> loginAccount(@RequestBody Map<String, String> data) {
+	public ResponseEntity<?> loginAccount(@RequestBody Map<String, String> data, HttpServletRequest request) {
 		String accountNumber = data.get("accountNumber");
 		String password = data.get("password");
 		Account checkAccount = accountService.findAccountByAccountNumber(accountNumber);
@@ -51,6 +53,8 @@ public class AccountController {
 				if (!checkAccount.getPassword().equals(password))
 					return new ResponseEntity<String>("Wrong password", HttpStatus.BAD_REQUEST);
 				else {
+					request.getSession().setAttribute("account_number", accountNumber);
+					request.getSession().setAttribute("email", checkAccount.getEmail());
 					checkAccount.setAttemp(checkAccount.getAttemp() + 1);
 					accountService.saveAccount(checkAccount);
 					return new ResponseEntity<Account>(checkAccount, HttpStatus.OK);
@@ -59,10 +63,10 @@ public class AccountController {
 		}
 		return new ResponseEntity<String>("Account not found", HttpStatus.BAD_REQUEST);
 	}
-
+	
 	@PostMapping("/internetBanking")
-	public ResponseEntity<?> registerInternetBankingAccount(@RequestBody ObjectNode data) {
-		String accountNumber = data.get("accountNumber").asText();
+	public ResponseEntity<?> registerInternetBankingAccount(@RequestBody ObjectNode data, HttpServletRequest request) {
+		String accountNumber = request.getSession().getAttribute("account_number").toString();
 		String password = data.get("password").asText();
 		String transactionPassword = data.get("transactionPassword").asText();
 		Account checkAccount = accountService.findAccountByAccountNumber(accountNumber);
@@ -78,8 +82,8 @@ public class AccountController {
 	}
 
 	@PutMapping("/newPassword")
-	public ResponseEntity<?> setNewPassword(@RequestBody ObjectNode data) {
-		String accountNumber = data.get("accountNumber").asText();
+	public ResponseEntity<?> setNewPassword(@RequestBody ObjectNode data, HttpServletRequest request) {
+		String accountNumber = request.getSession().getAttribute("account_number").toString();
 		String password = data.get("password").asText();
 		String newPassword = data.get("newPassword").asText();
 		Account checkAccount = accountService.findAccountByAccountNumber(accountNumber);
@@ -91,8 +95,8 @@ public class AccountController {
 	}
 	
 	@PostMapping("sendOTP")
-	public void sendOTP(@RequestBody ObjectNode data){
-		String email = data.get("email").asText();
+	public void sendOTP(HttpServletRequest request){
+		String email = request.getSession().getAttribute("email").toString();
 		Account checkAccount = accountService.findAccountByEmail(email);
 		int randomPin = (int)(Math.random()*9000)+1000;
 	    String otp = String.valueOf(randomPin);
