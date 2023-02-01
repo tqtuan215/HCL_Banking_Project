@@ -50,12 +50,14 @@ public class AccountController {
 			if(checkAccount.getAttemp() == 3)
 				return new ResponseEntity<String>("Account Locked", HttpStatus.BAD_REQUEST);
 			else {
-				if (!checkAccount.getPassword().equals(password))
+				if (!checkAccount.getPassword().equals(password)) {
+					checkAccount.setAttemp(checkAccount.getAttemp() + 1);
 					return new ResponseEntity<String>("Wrong password", HttpStatus.BAD_REQUEST);
+				}
 				else {
+					checkAccount.setAttemp(0);
 					request.getSession().setAttribute("account_number", accountNumber);
 					request.getSession().setAttribute("email", checkAccount.getEmail());
-					checkAccount.setAttemp(checkAccount.getAttemp() + 1);
 					accountService.saveAccount(checkAccount);
 					return new ResponseEntity<Account>(checkAccount, HttpStatus.OK);
 				}
