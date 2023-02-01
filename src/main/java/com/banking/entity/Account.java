@@ -20,6 +20,8 @@ public class Account {
 	private boolean internetBanking;
 	private Integer attemp = 0;
 	private String otp;
+	private boolean status;
+	private long balance;
 
 	public Integer getId() {
 		return id;
@@ -83,6 +85,22 @@ public class Account {
 
 	public void setOtp(String otp) {
 		this.otp = otp;
+	}
+
+	public boolean isStatus() {
+		return status;
+	}
+
+	public void setStatus(boolean status) {
+		this.status = status;
+	}
+
+	public long getBalance() {
+		return balance;
+	}
+
+	public void setBalance(long balance) {
+		this.balance = balance;
 	}
 
 }
