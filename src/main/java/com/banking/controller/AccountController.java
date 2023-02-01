@@ -64,26 +64,43 @@ public class AccountController {
 		return new ResponseEntity<String>("Account not found", HttpStatus.BAD_REQUEST);
 	}
 	
+	@PostMapping("/checkSession")
+	public ResponseEntity<?> checkSession(HttpServletRequest request){
+		if(request.getSession().getAttribute("account_number") != null) {
+			return new ResponseEntity<String>("Already logging", HttpStatus.OK);
+		}
+		return new ResponseEntity<String>("No session", HttpStatus.BAD_REQUEST);
+	}
+	
 	@PostMapping("/internetBanking")
 	public ResponseEntity<?> registerInternetBankingAccount(@RequestBody ObjectNode data, HttpServletRequest request) {
-		String accountNumber = request.getSession().getAttribute("account_number").toString();
-		String password = data.get("password").asText();
-		String transactionPassword = data.get("transactionPassword").asText();
-		Account checkAccount = accountService.findAccountByAccountNumber(accountNumber);
-		if (checkAccount != null) {
-			if (!checkAccount.getPassword().equals(password))
-				return new ResponseEntity<String>("Wrong password", HttpStatus.BAD_REQUEST);
-			else if (!checkAccount.getTransactionPassword().equals(transactionPassword))
-				return new ResponseEntity<String>("Wrong transaction password", HttpStatus.BAD_REQUEST);
-		} else
-			return new ResponseEntity<String>("Account not found", HttpStatus.BAD_REQUEST);
-		checkAccount.setInternetBanking(true);
-		return new ResponseEntity<Account>(accountService.saveAccount(checkAccount), HttpStatus.OK);
+		if(request.getSession().getAttribute("account_number") == null) {
+			return new ResponseEntity<String>("No session", HttpStatus.BAD_REQUEST);
+		}else {
+			String accountNumber = request.getSession().getAttribute("account_number").toString();
+			String password = data.get("password").asText();
+			String transactionPassword = data.get("transactionPassword").asText();
+			Account checkAccount = accountService.findAccountByAccountNumber(accountNumber);
+			if (checkAccount != null) {
+				if (!checkAccount.getPassword().equals(password))
+					return new ResponseEntity<String>("Wrong password", HttpStatus.BAD_REQUEST);
+				else if (!checkAccount.getTransactionPassword().equals(transactionPassword))
+					return new ResponseEntity<String>("Wrong transaction password", HttpStatus.BAD_REQUEST);
+			} else
+				return new ResponseEntity<String>("Account not found", HttpStatus.BAD_REQUEST);
+			checkAccount.setInternetBanking(true);
+			return new ResponseEntity<Account>(accountService.saveAccount(checkAccount), HttpStatus.OK);
+		}
 	}
 
 	@PutMapping("/newPassword")
 	public ResponseEntity<?> setNewPassword(@RequestBody ObjectNode data, HttpServletRequest request) {
-		String accountNumber = request.getSession().getAttribute("account_number").toString();
+		String accountNumber = null;
+		if(request.getSession().getAttribute("account_number") == null) {
+			accountNumber = data.get("accountNumber").asText();
+		}else {
+			accountNumber = request.getSession().getAttribute("account_number").toString();
+		}
 		String password = data.get("password").asText();
 		String newPassword = data.get("newPassword").asText();
 		Account checkAccount = accountService.findAccountByAccountNumber(accountNumber);
@@ -95,14 +112,19 @@ public class AccountController {
 	}
 	
 	@PostMapping("sendOTP")
-	public void sendOTP(HttpServletRequest request){
-		String email = request.getSession().getAttribute("email").toString();
-		Account checkAccount = accountService.findAccountByEmail(email);
-		int randomPin = (int)(Math.random()*9000)+1000;
-	    String otp = String.valueOf(randomPin);
-		emailService.sendSimpleEmail(email, "Your OTP is: ", otp);
-		checkAccount.setOtp(otp);
-		accountService.saveAccount(checkAccount);
+	public ResponseEntity<?> sendOTP(HttpServletRequest request){
+		if(request.getSession().getAttribute("account_number") == null) {
+			return new ResponseEntity<String>("No session", HttpStatus.BAD_REQUEST);
+		}else {
+			String email = request.getSession().getAttribute("email").toString();
+			Account checkAccount = accountService.findAccountByEmail(email);
+			int randomPin = (int)(Math.random()*9000)+1000;
+		    String otp = String.valueOf(randomPin);
+			emailService.sendSimpleEmail(email, "Your OTP is: ", otp);
+			checkAccount.setOtp(otp);
+			accountService.saveAccount(checkAccount);
+			return new ResponseEntity<String>("Send OTP success", HttpStatus.OK);
+		}
 	}
 	
 	@PostMapping("/forgotPassword")
