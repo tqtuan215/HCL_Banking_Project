@@ -1,16 +1,19 @@
 package com.banking.controller;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import com.banking.entity.Account;
 import com.banking.entity.Transaction;
 import com.banking.service.AccountService;
 import com.banking.service.FundTranferService;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
@@ -20,107 +23,157 @@ public class FundTranferController {
 	private FundTranferService fundService;
 	@Autowired
 	private AccountService accService;
-	
-	@PostMapping("/addPayee")
-	public ResponseEntity<?> addPayee(@RequestBody Transaction t, HttpServletRequest request) {		
-		//check active
+
+	/**
+	 * @param request check login and check account is active get session
+	 *                account_number
+	 * @return notification
+	 */
+	public ResponseEntity<?> check(HttpServletRequest request) {
+		String senderNumber = (String) request.getSession().getAttribute("account_number");
+		if (senderNumber == null)
+			return new ResponseEntity<String>("Please log in before transfer", HttpStatus.NOT_ACCEPTABLE);
+
+		// check active
+		Account sender = accService.findAccountByAccountNumber(senderNumber); // find sender in4
+		if (!sender.isStatus())
+			return new ResponseEntity<String>("Your acccount is not acctive. Please contact the bank serive",
+					HttpStatus.NOT_ACCEPTABLE);
+
+		return null;
+	}
+
+	/**
+	 * @param request 
+	 * check session
+	 * @return Map contains all in4 need to be transfer
+	 */
+	public ResponseEntity<?> checkTransfer(HttpServletRequest request) {
 		String curentAccNumber = (String) request.getSession().getAttribute("account_number");
-		Account sender = accService.findAccountByAccountNumber(curentAccNumber);		
-		if(!sender.isStatus()) return new ResponseEntity<String>("Your acccount is not acctive. Please contact the bank serive",HttpStatus.NOT_ACCEPTABLE);
-		// get in4
-		String name = t.getAccName();
-		String number = t.getAccNumber();
-		// initialize session
-		request.getSession().setAttribute("accName", name);
-		request.getSession().setAttribute("accNumber", number);
-		
-		Account payee = accService.findAccountByAccountNumber(t.getAccNumber()); // find payee
-		if(payee==null)
-			return new ResponseEntity<String>("Payee is not found. Please check payee number account",HttpStatus.NOT_FOUND);
-		
-		return new ResponseEntity<String>("Add payee successfully", HttpStatus.OK);
+		String name = (String) request.getSession().getAttribute("payeeAccName");
+		String payeeAccNumber = (String) request.getSession().getAttribute("payeeAccNumber");
+		String money = (String) request.getSession().getAttribute("money");
+		String mode = (String) request.getSession().getAttribute("mode");
+		if (name.isEmpty() || payeeAccNumber.isEmpty() || money.isEmpty() || mode.isEmpty())
+			return new ResponseEntity<String>("please fill all information", HttpStatus.NOT_ACCEPTABLE);
+		Map<String, String> map = new HashMap<String, String>();
+		map.put("payeeAccNumber", payeeAccNumber);
+		map.put("senderAccNumber", curentAccNumber);
+		map.put("payeeName", name);
+		map.put("money", money);
+		map.put("mode", mode);
+		return new ResponseEntity<Map<?, ?>>(map, HttpStatus.OK);
 	}
-	
-	@PostMapping("/transfer")
-	public ResponseEntity<?> tranferT(Model model, HttpServletRequest rq, @RequestBody Transaction trans) {
-		// get session in4
-		String name = (String) rq.getSession().getAttribute("accName");
-		String payeeAccNumber = (String) rq.getSession().getAttribute("accNumber");
-		String curentAccNumber = (String) rq.getSession().getAttribute("account_number");
+
+	@GetMapping("/")
+	public ResponseEntity<?> getSomeInf(HttpServletRequest request) {
+		String curentAccNumber = (String) request.getSession().getAttribute("account_number");
+		return new ResponseEntity<Account>(accService.findAccountByAccountNumber(curentAccNumber), HttpStatus.OK);
+	}
+
+	@PostMapping("/")
+	public ResponseEntity<?> fillFormTransfer(@RequestBody Transaction trans, HttpServletRequest request) {
+		// get sender acc number
+		String senderNumber = (String) request.getSession().getAttribute("account_number");
+
 		// check session login
-		if(curentAccNumber==null) return new ResponseEntity<String>("Please log in before transfer", HttpStatus.NOT_ACCEPTABLE);
-		//handle transfer
-		Account sender = accService.findAccountByAccountNumber(curentAccNumber); // find current account
-		Account payee = accService.findAccountByAccountNumber(payeeAccNumber); // find payee
-		
-//		model.addAttribute("accName", name);
-//		model.addAttribute("accNumber", number);
-		
-		// check whether balance is enough
-		if(sender.getBalance() >= trans.getMoney()) {
-			sender.setBalance(sender.getBalance()-trans.getMoney());
-			payee.setBalance(payee.getBalance()+trans.getMoney());
-			// sender's transaction 
-			Transaction tSender = new Transaction();		
-			tSender.setAccName(name);
-			tSender.setAccNumber(payeeAccNumber);
-			tSender.setMode(trans.getMode());				
-			tSender.setDate(new Date());		
-			tSender.setMoney(trans.getMoney());
-			tSender.setType(true);		// true = outgoing
-			tSender.setUserId(sender.getId());
-			// payee's transaction
-			Transaction tPayee = new Transaction();
-			tPayee.setAccName(name);
-			tPayee.setAccNumber(payeeAccNumber);
-			tPayee.setMode(trans.getMode());				
-			tPayee.setDate(new Date());		
-			tPayee.setMoney(trans.getMoney());
-			tPayee.setType(false);
-			tPayee.setUserId(payee.getId());
-			// add transaction both sender and payee
-			fundService.addNewPayee(tSender);
-			fundService.addNewPayee(tPayee);
-		}			
-		else
-			return new ResponseEntity<String>("Balance is not enough",HttpStatus.NOT_ACCEPTABLE);
-		return new ResponseEntity<String>("Transfer successfully!",HttpStatus.OK);
-		
+		if (senderNumber == null)
+			return new ResponseEntity<String>("Please log in before transfer", HttpStatus.NOT_ACCEPTABLE);
+
+		// check active
+		Account sender = accService.findAccountByAccountNumber(senderNumber); // find sender in4
+		if (!sender.isStatus())
+			return new ResponseEntity<String>("Your acccount is not acctive. Please contact the bank serive",
+					HttpStatus.NOT_ACCEPTABLE);
+
+		// check exist payee
+		Account payee = accService.findAccountByAccountNumber(trans.getAccNumber()); // find payee
+		if (payee == null)
+			return new ResponseEntity<String>("Payee is not found. Please check payee number account",
+					HttpStatus.NOT_FOUND);
+
+		// get payee's in4
+		String payeeName = trans.getAccName();
+		String payeeAccNumber = trans.getAccNumber();
+		String mode = String.valueOf(trans.getMode());
+		String money = String.valueOf(trans.getMoney());
+		// initialize session
+		request.getSession().setAttribute("payeeAccName", payeeName);
+		request.getSession().setAttribute("payeeAccNumber", payeeAccNumber);
+		request.getSession().setAttribute("money", money);
+		request.getSession().setAttribute("mode", mode);
+
+		// check balance
+		if (sender.getBalance() >= trans.getMoney()) {
+			return new ResponseEntity<String>("ok", HttpStatus.OK);
+		} else
+			return new ResponseEntity<String>("Balance is not enough", HttpStatus.NOT_ACCEPTABLE);
+
 	}
-//	@PostMapping("/addPayee")
-//	public ModelAndView addPayee(@RequestBody Transaction t, HttpServletRequest request) {
-//		// get in4
-//		String name = t.getAccName();
-//		long number = t.getAccNumber();
-//		// initialize session
-//		request.getSession().setAttribute("accName", name);
-//		request.getSession().setAttribute("accNumber", number);
-//		return new ModelAndView("redirect:/fundTransfer");
-//	}
-//	redirected ModelAndView
-//	@PostMapping("/transfer")
-//	public ModelAndView tranferT(Model model, HttpServletRequest rq, @RequestBody Transaction trans) {
-//		String name = (String) rq.getSession().getAttribute("accName");
-//		long number = (long) rq.getSession().getAttribute("accNumber");
-//		String accNumber = (String) rq.getSession().getAttribute("account_number"); 
-//		int userId = accService.findAccountByAccountNumber(accNumber).getId();
-//		if(accNumber==null) return new ModelAndView("redirect:/login");
-//		model.addAttribute("accName", name);
-//		model.addAttribute("accNumber", number);
-//		Transaction t = new Transaction();
-//		t.setAccName(name);
-//		t.setAccNumber(number);
-//		t.setMode(trans.getMode());				
-//		t.setDate(new Date());		
-//		t.setMoney(trans.getMoney());
-//		t.setUserId(userId);
-//		fundService.addNewPayee(t);
-//		rq.getSession().invalidate();
-//		return new ModelAndView("redirect:/fundTransfer");
-//		//return t.toString();
-//		
-//	}
+
+	@GetMapping("/confirm-transfer")
+	public ResponseEntity<?> tranferT(HttpServletRequest rq) {
+
+		// check session login
+		String curentAccNumber = (String) rq.getSession().getAttribute("account_number");
+		if (curentAccNumber == null)
+			return new ResponseEntity<String>("Please log in before transfer", HttpStatus.NOT_ACCEPTABLE);
+
+		return checkTransfer(rq);
+	}
+
+	@PostMapping("/confirm-transfer/transpassword")
+	public ResponseEntity<?> lastStepTransfer(@RequestBody ObjectNode transPw, HttpServletRequest request) {
+//	public String lastStepTransfer(@RequestBody ObjectNode transPw, HttpServletRequest request) {
+		check(request);
+		checkTransfer(request);
+		
+		// find sender in4
+		String senderNumber = (String) request.getSession().getAttribute("account_number");
+		Account sender = accService.findAccountByAccountNumber(senderNumber); 
+		
+		// get transaction password and check
+		if (!sender.getTransactionPassword().equals(transPw.get("transPw").asText()))
+//			return new ResponseEntity<String>("Invalid transaction password. Please try again",
+//					HttpStatus.NOT_ACCEPTABLE);
+			return new ResponseEntity<String>("test-"+transPw.get("transPw").asText(),
+				HttpStatus.NOT_ACCEPTABLE);;
 
 
+		// get session in4
+		String name = (String) request.getSession().getAttribute("payeeAccName");
+		String payeeAccNumber = (String) request.getSession().getAttribute("payeeAccNumber");
+		long money = Long.parseLong((String) request.getSession().getAttribute("money"));
+		int mode = Integer.parseInt((String) request.getSession().getAttribute("mode"));
 
+		// check exist payee
+		Account payee = accService.findAccountByAccountNumber(payeeAccNumber); // find payee
+		sender.setBalance(sender.getBalance() - money);
+		payee.setBalance(payee.getBalance() + money);
+		// sender's transaction
+		Transaction tSender = new Transaction();
+		tSender.setAccName(name);
+		tSender.setAccNumber(payeeAccNumber);
+		tSender.setMode(mode);
+		tSender.setDate(new Date());
+		tSender.setMoney(money);
+		tSender.setType(true); // true = outgoing
+		// tSender.setAccount(sender);
+		tSender.setUserId(sender.getId());
+		// payee's transaction
+		Transaction tPayee = new Transaction();
+		tPayee.setAccName(name);
+		tPayee.setAccNumber(payeeAccNumber);
+		tPayee.setMode(mode);
+		tPayee.setDate(new Date());
+		tPayee.setMoney(mode);
+		tPayee.setType(false);
+		// tPayee.setAccount(payee);
+		tPayee.setUserId(payee.getId());
+		// add transaction both sender and payee
+		fundService.addNewPayee(tSender);
+		fundService.addNewPayee(tPayee);
+		return new ResponseEntity<String>("Transfer successfully",HttpStatus.OK);
+		//return "ok";
+	}
 }

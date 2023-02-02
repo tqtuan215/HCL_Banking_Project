@@ -3,18 +3,18 @@ package com.banking.entity;
 import java.sql.Date;
 
 public class Profile {
-	private int id;
+	private Integer id;
 	private Date DOB;
 	private String residentalAddress;
 	private String permanentAddress;
 	private String occupational;
 	private String fullName;
-	private int user;
+	private Integer user;
 	
-	public int getId() {
+	public Integer getId() {
 		return id;
 	}
-	public void setId(int id) {
+	public void setId(Integer id) {
 		this.id = id;
 	}
 	public Date getDOB() {
@@ -47,10 +47,10 @@ public class Profile {
 	public void setFullName(String fullName) {
 		this.fullName = fullName;
 	}
-	public int getUser() {
+	public Integer getUser() {
 		return user;
 	}
-	public void setUserId(int user) {
+	public void setUserId(Integer user) {
 		this.user = user;
 	}
 	

@@ -12,25 +12,25 @@ import jakarta.persistence.Id;
 public class Transaction {	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private int transId;
+	private Integer transId;
 	private String date;
 	private long money;
 	private boolean type;
-	private int mode;
+	private Integer mode;
 	private String accName;
 	private String accNumber;
-	private int userId;
+	private Integer userId;
 	
-	public int getUserId() {
+	public Integer getUserId() {
 		return userId;
 	}
-	public void setUserId(int userId) {
+	public void setUserId(Integer userId) {
 		this.userId = userId;
 	}
-	public int getTransId() {
+	public Integer getTransId() {
 		return transId;
 	}
-	public void setTransId(int transId) {
+	public void setTransId(Integer transId) {
 		this.transId = transId;
 	}
 	public String getDate() {
@@ -53,10 +53,10 @@ public class Transaction {
 	public void setType(boolean type) {
 		this.type = type;
 	}
-	public int getMode() {
+	public Integer getMode() {
 		return mode;
 	}
-	public void setMode(int mode) {
+	public void setMode(Integer mode) {
 		this.mode = mode;
 	}
 	public String getAccName() {

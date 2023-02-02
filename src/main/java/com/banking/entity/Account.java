@@ -13,7 +13,8 @@ public class Account {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
-	private String accountNumber;
+	private String IdNumber;
+	private String accountNumber;	
 	private String password;
 	private String transactionPassword;
 	private String email;
@@ -29,6 +30,14 @@ public class Account {
 
 	public void setId(Integer id) {
 		this.id = id;
+	}
+
+	public String getIdNumber() {
+		return IdNumber;
+	}
+
+	public void setIdNumber(String idNumber) {
+		IdNumber = idNumber;
 	}
 
 	public String getAccountNumber() {
