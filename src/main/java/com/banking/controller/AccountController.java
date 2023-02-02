@@ -66,6 +66,14 @@ public class AccountController {
 		return new ResponseEntity<String>("Account not found", HttpStatus.BAD_REQUEST);
 	}
 	
+	@GetMapping("/login")
+	public ResponseEntity<?> loginData(HttpServletRequest request){
+		if(request.getSession().getAttribute("account_number") == null) {
+			return new ResponseEntity<String>("No session", HttpStatus.BAD_REQUEST);
+		}else
+			return new ResponseEntity<Account>(accountService.findAccountByAccountNumber(request.getSession().getAttribute("account_number").toString()), HttpStatus.OK);
+	}
+	
 	@PostMapping("/checkSession")
 	public ResponseEntity<?> checkSession(HttpServletRequest request){
 		if(request.getSession().getAttribute("account_number") != null) {
