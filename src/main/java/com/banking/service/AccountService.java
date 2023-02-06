@@ -37,7 +37,7 @@ public class AccountService {
 		return accountRepository.findById(id);
 	}
 	
-	public Account findAllAccountIsNotActive(boolean isActive) {
+	public List<Account> findAllAccountIsNotActive(boolean isActive) {
 		return accountRepository.findByStatus(isActive);
 	}
 }

@@ -23,6 +23,15 @@ public class Account {
 	private String otp;
 	private boolean status;
 	private long balance;
+	private Integer accType;
+	
+	public Integer getAccType() {
+		return accType;
+	}
+
+	public void setAccType(Integer accType) {
+		this.accType = accType;
+	}
 
 	public Integer getId() {
 		return id;
