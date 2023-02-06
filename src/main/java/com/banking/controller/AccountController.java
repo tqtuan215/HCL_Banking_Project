@@ -5,6 +5,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -58,6 +59,33 @@ public class AccountController {
 					checkAccount.setAttemp(0);
 					request.getSession().setAttribute("account_number", accountNumber);
 					request.getSession().setAttribute("email", checkAccount.getEmail());
+					accountService.saveAccount(checkAccount);
+					return new ResponseEntity<Account>(checkAccount, HttpStatus.OK);
+				}
+			}	
+		}
+		return new ResponseEntity<String>("Account not found", HttpStatus.BAD_REQUEST);
+	}
+	
+	@PostMapping("/loginTest")
+	public ResponseEntity<?> loginAccountTest(@RequestBody Map<String, String> data, HttpServletRequest request, Model model) {
+		String accountNumber = data.get("accountNumber");
+		String password = data.get("password");
+		Account checkAccount = accountService.findAccountByAccountNumber(accountNumber);
+		if (checkAccount != null) {
+			if(checkAccount.getAttemp() == 3)
+				return new ResponseEntity<String>("Account Locked", HttpStatus.BAD_REQUEST);
+			else {
+				if (!checkAccount.getPassword().equals(password)) {
+					checkAccount.setAttemp(checkAccount.getAttemp() + 1);
+					return new ResponseEntity<String>("Wrong password", HttpStatus.BAD_REQUEST);
+				}
+				else {
+					checkAccount.setAttemp(0);
+//					request.getSession().setAttribute("account_number", accountNumber);
+//					request.getSession().setAttribute("email", checkAccount.getEmail());
+					model.addAttribute("acccount_number");
+					model.addAttribute("email");
 					accountService.saveAccount(checkAccount);
 					return new ResponseEntity<Account>(checkAccount, HttpStatus.OK);
 				}
