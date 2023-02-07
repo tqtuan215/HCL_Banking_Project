@@ -67,31 +67,10 @@ public class AccountController {
 		return new ResponseEntity<String>("Account not found", HttpStatus.BAD_REQUEST);
 	}
 	
-	@PostMapping("/loginTest")
-	public ResponseEntity<?> loginAccountTest(@RequestBody Map<String, String> data, HttpServletRequest request, Model model) {
-		String accountNumber = data.get("accountNumber");
-		String password = data.get("password");
-		Account checkAccount = accountService.findAccountByAccountNumber(accountNumber);
-		if (checkAccount != null) {
-			if(checkAccount.getAttemp() == 3)
-				return new ResponseEntity<String>("Account Locked", HttpStatus.BAD_REQUEST);
-			else {
-				if (!checkAccount.getPassword().equals(password)) {
-					checkAccount.setAttemp(checkAccount.getAttemp() + 1);
-					return new ResponseEntity<String>("Wrong password", HttpStatus.BAD_REQUEST);
-				}
-				else {
-					checkAccount.setAttemp(0);
-//					request.getSession().setAttribute("account_number", accountNumber);
-//					request.getSession().setAttribute("email", checkAccount.getEmail());
-					model.addAttribute("acccount_number");
-					model.addAttribute("email");
-					accountService.saveAccount(checkAccount);
-					return new ResponseEntity<Account>(checkAccount, HttpStatus.OK);
-				}
-			}	
-		}
-		return new ResponseEntity<String>("Account not found", HttpStatus.BAD_REQUEST);
+	@GetMapping("/logout")
+	public String logout(HttpServletRequest request) {
+		request.getSession().invalidate();
+		return "logout";
 	}
 	
 	@GetMapping("/login")
