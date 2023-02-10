@@ -18,7 +18,7 @@ public class Transaction {
 	private boolean type;
 	private Integer mode;
 	private String accName;
-	private String accNumber;
+	private String accNumber;	
 	private Integer userId;
 	
 	public Integer getUserId() {

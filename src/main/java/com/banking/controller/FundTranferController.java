@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import com.banking.entity.Account;
 import com.banking.entity.Transaction;
 import com.banking.service.AccountService;
+import com.banking.service.DashBoardService;
 import com.banking.service.FundTranferService;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -23,6 +24,8 @@ public class FundTranferController {
 	private FundTranferService fundService;
 	@Autowired
 	private AccountService accService;
+	@Autowired
+	private DashBoardService dbService;
 
 	/**
 	 * @param request check login and check account is active get session
@@ -65,13 +68,13 @@ public class FundTranferController {
 		return new ResponseEntity<Map<?, ?>>(map, HttpStatus.OK);
 	}
 
-	@GetMapping("/")
-	public ResponseEntity<?> getSomeInf(HttpServletRequest request) {
+	@GetMapping
+	public ResponseEntity<?> getInfOfSender(HttpServletRequest request) {
 		String curentAccNumber = (String) request.getSession().getAttribute("account_number");
 		return new ResponseEntity<Account>(accService.findAccountByAccountNumber(curentAccNumber), HttpStatus.OK);
 	}
 
-	@PostMapping("/")
+	@PostMapping
 	public ResponseEntity<?> fillFormTransfer(@RequestBody Transaction trans, HttpServletRequest request) {
 		// get sender acc number
 		String senderNumber = (String) request.getSession().getAttribute("account_number");
@@ -88,20 +91,24 @@ public class FundTranferController {
 
 		// check exist payee
 		Account payee = accService.findAccountByAccountNumber(trans.getAccNumber()); // find payee
+		
 		if (payee == null)
 			return new ResponseEntity<String>("Payee is not found. Please check payee number account",
 					HttpStatus.NOT_FOUND);
-
+		//check payee is active
+		if(!payee.isStatus()) return new ResponseEntity<String>("Your payee is not acctive",HttpStatus.NOT_ACCEPTABLE);
+		
+		
 		// get payee's in4
-		String payeeName = trans.getAccName();
+		String payeeName = dbService.showProfileByUserID(payee.getId()).getFullName();		
 		String payeeAccNumber = trans.getAccNumber();
-		String mode = String.valueOf(trans.getMode());
+		
 		String money = String.valueOf(trans.getMoney());
 		// initialize session
 		request.getSession().setAttribute("payeeAccName", payeeName);
 		request.getSession().setAttribute("payeeAccNumber", payeeAccNumber);
 		request.getSession().setAttribute("money", money);
-		request.getSession().setAttribute("mode", mode);
+		
 
 		// check balance
 		if (sender.getBalance() >= trans.getMoney()) {
@@ -124,7 +131,6 @@ public class FundTranferController {
 
 	@PostMapping("/confirm-transfer/transpassword")
 	public ResponseEntity<?> lastStepTransfer(@RequestBody ObjectNode transPw, HttpServletRequest request) {
-//	public String lastStepTransfer(@RequestBody ObjectNode transPw, HttpServletRequest request) {
 		check(request);
 		checkTransfer(request);
 		
@@ -134,17 +140,13 @@ public class FundTranferController {
 		
 		// get transaction password and check
 		if (!sender.getTransactionPassword().equals(transPw.get("transPw").asText()))
-//			return new ResponseEntity<String>("Invalid transaction password. Please try again",
-//					HttpStatus.NOT_ACCEPTABLE);
-			return new ResponseEntity<String>("test-"+transPw.get("transPw").asText(),
-				HttpStatus.NOT_ACCEPTABLE);;
-
-
+			return new ResponseEntity<String>("Invalid transaction password. Please try again",
+					HttpStatus.NOT_ACCEPTABLE);
 		// get session in4
 		String name = (String) request.getSession().getAttribute("payeeAccName");
 		String payeeAccNumber = (String) request.getSession().getAttribute("payeeAccNumber");
 		long money = Long.parseLong((String) request.getSession().getAttribute("money"));
-		int mode = Integer.parseInt((String) request.getSession().getAttribute("mode"));
+		
 
 		// check exist payee
 		Account payee = accService.findAccountByAccountNumber(payeeAccNumber); // find payee
@@ -154,7 +156,7 @@ public class FundTranferController {
 		Transaction tSender = new Transaction();
 		tSender.setAccName(name);
 		tSender.setAccNumber(payeeAccNumber);
-		tSender.setMode(mode);
+		
 		tSender.setDate(new Date());
 		tSender.setMoney(money);
 		tSender.setType(true); // true = outgoing
@@ -164,16 +166,14 @@ public class FundTranferController {
 		Transaction tPayee = new Transaction();
 		tPayee.setAccName(name);
 		tPayee.setAccNumber(payeeAccNumber);
-		tPayee.setMode(mode);
+		
 		tPayee.setDate(new Date());
 		tPayee.setMoney(money);
-		tPayee.setType(false);
-		// tPayee.setAccount(payee);
-		tPayee.setUserId(payee.getId());
-		// add transaction both sender and payee
+		tPayee.setType(false);		
+		tPayee.setUserId(payee.getId());		
 		fundService.addNewPayee(tSender);
 		fundService.addNewPayee(tPayee);
 		return new ResponseEntity<String>("Transfer successfully",HttpStatus.OK);
-		//return "ok";
+		
 	}
 }
