@@ -21,6 +21,8 @@ import com.banking.entity.Transaction;
 import com.banking.entity.AccountSummary;
 import com.banking.service.DashBoardService;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 @RestController
 public class DashBoardController {
 	@Autowired
@@ -64,5 +66,15 @@ public class DashBoardController {
 	            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 	        }
 	        return new ResponseEntity<>(account, HttpStatus.OK); 
+	}
+	
+	@GetMapping("/transactions")
+	public ResponseEntity<?> getAllTransaction(HttpServletRequest request){		
+		if(request.getSession().getAttribute("id")==null) return new ResponseEntity<String>("you need to login",HttpStatus.NOT_FOUND);
+		else {
+			int id = (int) request.getSession().getAttribute("id");		
+			return new ResponseEntity<List<Transaction>>(dashBoardService.showTransactionByID(id),HttpStatus.OK);
+		}
+		
 	}
 }
