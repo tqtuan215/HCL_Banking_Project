@@ -16,7 +16,6 @@ public class Transaction {
 	private String date;
 	private long money;
 	private boolean type;
-	private Integer mode;
 	private String accName;
 	private String accNumber;	
 	private Integer userId;
@@ -53,12 +52,7 @@ public class Transaction {
 	public void setType(boolean type) {
 		this.type = type;
 	}
-	public Integer getMode() {
-		return mode;
-	}
-	public void setMode(Integer mode) {
-		this.mode = mode;
-	}
+
 	public String getAccName() {
 		return accName;
 	}
@@ -73,8 +67,7 @@ public class Transaction {
 	}
 	@Override
 	public String toString() {
-		return "Transaction [transId=" + transId + ", date=" + date + ", money=" + money + ", type=" + type + ", mode="
-				+ mode + ", accName=" + accName + ", accNumber=" + accNumber + ", userId=" + userId + "]";
+		return "Transaction [transId=" + transId + ", date=" + date + ", money=" + money + ", type=" + type + ", accName=" + accName + ", accNumber=" + accNumber + ", userId=" + userId + "]";
 	}
 	
 	

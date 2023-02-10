@@ -34,8 +34,8 @@ public class DashBoardService {
 		return profileRespository.findProfileById(id);
 	}
 	
-	public Profile showProfileByUserID(Integer user) {
-		return profileRespository.findProfileById(user);
+	public Profile showProfileByUser(Integer user) {
+		return profileRespository.findProfileByUser(user);
 	}
 	
 	public Account showAccountByID(Integer id) {

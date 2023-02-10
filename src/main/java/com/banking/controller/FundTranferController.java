@@ -56,15 +56,13 @@ public class FundTranferController {
 		String name = (String) request.getSession().getAttribute("payeeAccName");
 		String payeeAccNumber = (String) request.getSession().getAttribute("payeeAccNumber");
 		String money = (String) request.getSession().getAttribute("money");
-		String mode = (String) request.getSession().getAttribute("mode");
-		if (name.isEmpty() || payeeAccNumber.isEmpty() || money.isEmpty() || mode.isEmpty())
+		if (name.isEmpty() || payeeAccNumber.isEmpty() || money.isEmpty())
 			return new ResponseEntity<String>("please fill all information", HttpStatus.NOT_ACCEPTABLE);
 		Map<String, String> map = new HashMap<String, String>();
 		map.put("payeeAccNumber", payeeAccNumber);
 		map.put("senderAccNumber", curentAccNumber);
 		map.put("payeeName", name);
-		map.put("money", money);
-		map.put("mode", mode);
+		map.put("money", money);		
 		return new ResponseEntity<Map<?, ?>>(map, HttpStatus.OK);
 	}
 
@@ -99,10 +97,10 @@ public class FundTranferController {
 		if(!payee.isStatus()) return new ResponseEntity<String>("Your payee is not acctive",HttpStatus.NOT_ACCEPTABLE);
 		
 		
-		// get payee's in4
-		String payeeName = dbService.showProfileByUserID(payee.getId()).getFullName();		
-		String payeeAccNumber = trans.getAccNumber();
 		
+		// get payee's in4
+		String payeeName = dbService.showProfileByUser(payee.getId()).getFullName();		
+		String payeeAccNumber = trans.getAccNumber();		
 		String money = String.valueOf(trans.getMoney());
 		// initialize session
 		request.getSession().setAttribute("payeeAccName", payeeName);
@@ -165,8 +163,7 @@ public class FundTranferController {
 		// payee's transaction
 		Transaction tPayee = new Transaction();
 		tPayee.setAccName(name);
-		tPayee.setAccNumber(payeeAccNumber);
-		
+		tPayee.setAccNumber(payeeAccNumber);		
 		tPayee.setDate(new Date());
 		tPayee.setMoney(money);
 		tPayee.setType(false);		
