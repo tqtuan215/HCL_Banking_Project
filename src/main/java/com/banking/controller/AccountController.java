@@ -72,7 +72,6 @@ public class AccountController {
 	@GetMapping("/logout")
 	public String logout(HttpServletRequest request) {
 		request.getSession().invalidate();
-		
 		return "logout";
 	}
 	
@@ -92,7 +91,7 @@ public class AccountController {
 		return new ResponseEntity<String>("No session", HttpStatus.BAD_REQUEST);
 	}
 	
-	@PostMapping("/internetBanking")
+	/*@PostMapping("/internetBanking")
 	public ResponseEntity<?> registerInternetBankingAccount(@RequestBody ObjectNode data, HttpServletRequest request) {
 		if(request.getSession().getAttribute("account_number") == null) {
 			return new ResponseEntity<String>("No session", HttpStatus.BAD_REQUEST);
@@ -111,7 +110,7 @@ public class AccountController {
 			checkAccount.setInternetBanking(true);
 			return new ResponseEntity<Account>(accountService.saveAccount(checkAccount), HttpStatus.OK);
 		}
-	}
+	}*/
 	
 	@PutMapping("/changepassword")
 	public ResponseEntity<?> changePassword(@RequestBody ObjectNode data, HttpServletRequest request) {
