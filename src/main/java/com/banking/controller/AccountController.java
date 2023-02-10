@@ -60,6 +60,7 @@ public class AccountController {
 					checkAccount.setAttemp(0);
 					request.getSession().setAttribute("account_number", accountNumber);
 					request.getSession().setAttribute("email", checkAccount.getEmail());
+					request.getSession().setAttribute("id", checkAccount.getId());
 					accountService.saveAccount(checkAccount);
 					return new ResponseEntity<Account>(checkAccount, HttpStatus.OK);
 				}
@@ -71,6 +72,7 @@ public class AccountController {
 	@GetMapping("/logout")
 	public String logout(HttpServletRequest request) {
 		request.getSession().invalidate();
+		
 		return "logout";
 	}
 	

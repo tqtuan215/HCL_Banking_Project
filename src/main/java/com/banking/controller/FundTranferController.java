@@ -166,7 +166,7 @@ public class FundTranferController {
 		tPayee.setAccNumber(payeeAccNumber);
 		tPayee.setMode(mode);
 		tPayee.setDate(new Date());
-		tPayee.setMoney(mode);
+		tPayee.setMoney(money);
 		tPayee.setType(false);
 		// tPayee.setAccount(payee);
 		tPayee.setUserId(payee.getId());
