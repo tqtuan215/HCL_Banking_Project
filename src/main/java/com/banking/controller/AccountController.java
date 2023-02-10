@@ -70,6 +70,7 @@ public class AccountController {
 	@GetMapping("/logout")
 	public String logout(HttpServletRequest request) {
 		request.getSession().invalidate();
+		
 		return "logout";
 	}
 	
