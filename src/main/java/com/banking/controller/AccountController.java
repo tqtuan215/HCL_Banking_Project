@@ -53,6 +53,7 @@ public class AccountController {
 			else {
 				if (!checkAccount.getPassword().equals(password)) {
 					checkAccount.setAttemp(checkAccount.getAttemp() + 1);
+					accountService.saveAccount(checkAccount);
 					return new ResponseEntity<String>("Wrong password", HttpStatus.BAD_REQUEST);
 				}
 				else {
@@ -111,39 +112,41 @@ public class AccountController {
 			return new ResponseEntity<Account>(accountService.saveAccount(checkAccount), HttpStatus.OK);
 		}
 	}
+	
+	@PutMapping("/changepassword")
+	public ResponseEntity<?> changePassword(@RequestBody ObjectNode data, HttpServletRequest request) {
+		String accountNumber = request.getSession().getAttribute("account_number").toString();
+		String newPassword = data.get("newPassword").asText();
+		String newTransactionPassword = data.get("newTransactionPassword").asText();
+		Account checkAccount = accountService.findAccountByAccountNumber(accountNumber);
+		checkAccount.setPassword(newPassword);
+		checkAccount.setTransactionPassword(newTransactionPassword);
+		return new ResponseEntity<Account>(accountService.saveAccount(checkAccount), HttpStatus.OK);
+	}
 
 	@PutMapping("/newPassword")
-	public ResponseEntity<?> setNewPassword(@RequestBody ObjectNode data, HttpServletRequest request) {
-		String accountNumber = null;
-		if(request.getSession().getAttribute("account_number") == null) {
-			accountNumber = data.get("accountNumber").asText();
-		}else {
-			accountNumber = request.getSession().getAttribute("account_number").toString();
-		}
-		String password = data.get("password").asText();
+	public ResponseEntity<?> setNewPassword(@RequestBody ObjectNode data) {
+		String accountNumber = data.get("accountNumber").asText();
 		String newPassword = data.get("newPassword").asText();
 		Account checkAccount = accountService.findAccountByAccountNumber(accountNumber);
-		if (!checkAccount.getPassword().equals(password))
-			return new ResponseEntity<String>("Wrong password", HttpStatus.BAD_REQUEST);
 		checkAccount.setPassword(newPassword);
 		checkAccount.setAttemp(0);
 		return new ResponseEntity<Account>(accountService.saveAccount(checkAccount), HttpStatus.OK);
 	}
 	
-	@PostMapping("sendOTP")
-	public ResponseEntity<?> sendOTP(HttpServletRequest request){
-		if(request.getSession().getAttribute("account_number") == null) {
-			return new ResponseEntity<String>("No session", HttpStatus.BAD_REQUEST);
-		}else {
-			String email = request.getSession().getAttribute("email").toString();
-			Account checkAccount = accountService.findAccountByEmail(email);
-			int randomPin = (int)(Math.random()*9000)+1000;
-		    String otp = String.valueOf(randomPin);
-			emailService.sendSimpleEmail(email, "Your OTP is: ", otp);
-			checkAccount.setOtp(otp);
-			accountService.saveAccount(checkAccount);
-			return new ResponseEntity<String>("Send OTP success", HttpStatus.OK);
+	@PostMapping("/sendOTP")
+	public ResponseEntity<?> sendOTP(@RequestBody ObjectNode data) {
+		String accountNumber = data.get("accountNumber").asText();
+		Account checkAccount = accountService.findAccountByAccountNumber(accountNumber);
+		if (checkAccount == null) {
+			return new ResponseEntity<String>("No account found", HttpStatus.BAD_REQUEST);
 		}
+		int randomPin = (int) (Math.random() * 9000) + 1000;
+		String otp = String.valueOf(randomPin);
+		emailService.sendSimpleEmail(checkAccount.getEmail(), "Your OTP is: ", otp);
+		checkAccount.setOtp(otp);
+		accountService.saveAccount(checkAccount);
+		return new ResponseEntity<String>("Send OTP success", HttpStatus.OK);
 	}
 	
 	@PostMapping("/forgotPassword")
@@ -158,7 +161,4 @@ public class AccountController {
 		return new ResponseEntity<String>("Success", HttpStatus.OK);
 	}
 	
-	
-	
-
 }
